@@ -1,0 +1,1 @@
+gcc -o out main.c KeccakP-1600-reference.c my_keccak.c KeccakP-1600-times4-SIMD256.c my_par_keccak.c -fsanitize=address -march=native && ./out
