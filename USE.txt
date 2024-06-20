@@ -1,1 +1,4 @@
+# reference keccak
 gcc -o out main.c KeccakP-1600-reference.c my_keccak.c KeccakP-1600-times4-SIMD256.c my_par_keccak.c -fsanitize=address -march=native && ./out
+# cross' keccak
+gcc -o out main.c cross/cross_fips202.c cross/cross_keccakf1600.c KeccakP-1600-times4-SIMD256.c my_par_keccak.c -fsanitize=address -march=native && ./out

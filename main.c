@@ -4,17 +4,18 @@
 #include <string.h>
 #include <time.h>
 
-#include "my_keccak.h"
+#include "./cross/cross_xof.h"
+//#include "my_keccak.h"
 #include "my_par_keccak.h"
 #include "my_utility.h"
 
-//#define IN_LEN 8*4
-#define IN_LEN 10
-#define OUT_LEN 10
-
 int main() {
 
-    int in_len = 64;
+    clock_t t_parallel, t_serial, t_total;
+    int num_tests = 100000;
+    t_total = clock();
+    /////////////////////////////////////////////////////////////////////////////////
+    int in_len = 640;
     int out_len = 64;
     unsigned char in1[in_len];
     unsigned char in2[in_len];
@@ -28,21 +29,26 @@ int main() {
     fill_array(in2, in_len);
     fill_array(in3, in_len);
     fill_array(in4, in_len);
-    /////////////////////////////////////////////////////////////////////////////////
-    clock_t t_parallel, t_serial, t_total;
-    int num_tests = 100000;
-    t_total = clock();
+    // /////////////////////////////////////////////////////////////////////////////////
+    // t_serial = clock();
+    // my_keccak_context ctx;
+    // for(int i=0; i<num_tests; i++) {
+    //     in1[3] += 100; // just to change the input
+    //     my_keccak_start(&ctx);
+    //     my_keccak_input(&ctx, in1, in_len);
+    //     my_keccak_stop(&ctx);
+    //     my_keccak_output(&ctx, out1, out_len);
+    // }
+    // t_serial = clock() - t_serial; 
     /////////////////////////////////////////////////////////////////////////////////
     t_serial = clock();
-    my_keccak_context ctx;
+    XOF_STATE ctx;
     for(int i=0; i<num_tests; i++) {
         in1[3] += 100; // just to change the input
-        my_keccak_start(&ctx);
-        my_keccak_input(&ctx, in1, in_len);
-        my_keccak_stop(&ctx);
-        my_keccak_output(&ctx, out1, out_len);
+        xof_cycle(in1,in_len,out1,out_len);
     }
     t_serial = clock() - t_serial; 
+    print_array(out1, out_len);
     /////////////////////////////////////////////////////////////////////////////////
     //printf("Keccak output: ");for (int i = 0; i < TEST_LEN; ++i) {printf("%02x", test_out[i]);}printf("\n");
     //print_state(ctx.state);
@@ -58,6 +64,7 @@ int main() {
         my_par_keccak_output(&pctx, out1, out2, out3, out4, out_len);
     }
     t_parallel = clock() - t_parallel;
+    print_array(out1, out_len);
     /////////////////////////////////////////////////////////////////////////////////
     //printf("Keccak output: ");for (int i = 0; i < TEST_LEN; ++i) {printf("%02x", test_out[i]);}printf("\n");
     //print_states(pctx.state);
