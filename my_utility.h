@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "KeccakP-1600-times4-SnP.h"
 #include "KeccakP-1600-SnP.h"
+#include "cross/cross_fips202.h"
 
 void print_V256(V256 vec) {
     uint8_t values[32];
@@ -46,6 +47,19 @@ void print_state(KeccakP1600_plain8_state state) {
     printf("\n");
 }
 
+void print_cross_state(cross_shake256incctx state) {
+    uint8_t* byte_ptr = (uint8_t*)state.ctx;
+    for (int i = 0; i < 25; i++) {
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 4; k++) {
+                printf("%02x", byte_ptr[i * 8 + j * 4 + k]);
+            }
+            printf(", ");
+        }
+        printf("\n");
+    }
+}
+
 void print_states(KeccakP1600times4_SIMD256_states states) {
     for (int i = 0; i < 25; ++i) {
         printf("A[%d] =\t", i);
@@ -58,4 +72,26 @@ void print_array(const unsigned char* array, int length) {
         printf("%02X", array[i]);
     }
     printf("\n");
+}
+
+void simple_randombytes(unsigned char *x, unsigned long long xlen) {
+    for (unsigned long long i = 0; i < xlen; i++) {
+        x[i] = (unsigned char) (rand() % 256);
+    }
+}
+
+void print_progress(int i, int progress) {
+    if((i%progress == 0) && i) {
+        printf(".");
+        fflush(stdout);
+    }
+}
+
+static void print_short_array(const char *name, unsigned char *array, unsigned long long len) {
+    printf("%s: ", name);
+    for (size_t i = 0; i < len; i++) {
+        if(i < 3) printf("%02x", array[i]);
+        else if(i == len/2) printf(" ... ");
+        else if(i > (len-4)) printf("%02x", array[i]);
+    }
 }

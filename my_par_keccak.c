@@ -59,6 +59,7 @@ void my_par_keccak_input(my_par_keccak_context *ctx, const unsigned char *in1, c
             in_len -= RATE - ctx->offset;
             ins += RATE - ctx->offset;
             KeccakP1600times4_PermuteAll_24rounds(&ctx->state);
+            ctx->offset = 0;
         }
         // if there are any bytes left, absorb them
         for(int instance=0; instance<4; instance++) {
@@ -146,9 +147,9 @@ void my_par_keccak_output(my_par_keccak_context *ctx, unsigned char *out1, unsig
         }
     }
     memcpy(out1, original_outs, (total_len/4));
-    memcpy(out2, original_outs+out_len, (total_len/4));
-    memcpy(out3, original_outs+out_len*2, (total_len/4));
-    memcpy(out4, original_outs+out_len*3, (total_len/4));
+    memcpy(out2, original_outs+original_out_len, (total_len/4));
+    memcpy(out3, original_outs+original_out_len*2, (total_len/4));
+    memcpy(out4, original_outs+original_out_len*3, (total_len/4));
     free(original_outs);
     
 }

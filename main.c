@@ -3,84 +3,80 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
+#include <unistd.h>
 
 #include "./cross/cross_xof.h"
 //#include "my_keccak.h"
 #include "my_par_keccak.h"
 #include "my_utility.h"
 
-int main() {
+#define NUM_TESTS 10000000
+#define PROGRESS 1000
+#define IN_LEN 600
+#define OUT_LEN 600
+#define REPEAT_INPUT 10
+#define REPEAT_OUTPUT 10
 
-    clock_t t_parallel, t_serial, t_total, t_tmp;
-    int num_tests = 100000;
-    t_total = clock();
-    /////////////////////////////////////////////////////////////////////////////////
-    int in_len = 64+1;
-    int out_len = 64+1;
-    unsigned char in1[in_len];
-    unsigned char in2[in_len];
-    unsigned char in3[in_len];
-    unsigned char in4[in_len];
-    unsigned char out1[out_len];
-    unsigned char out2[out_len];
-    unsigned char out3[out_len];
-    unsigned char out4[out_len];
-    fill_array(in1, in_len);
-    fill_array(in2, in_len);
-    fill_array(in3, in_len);
-    fill_array(in4, in_len);
-    // /////////////////////////////////////////////////////////////////////////////////
-    // t_serial = clock();
-    // my_keccak_context ctx;
-    // for(int i=0; i<num_tests; i++) {
-    //     in1[3] += 100; // just to change the input
-    //     my_keccak_start(&ctx);
-    //     my_keccak_input(&ctx, in1, in_len);
-    //     my_keccak_stop(&ctx);
-    //     my_keccak_output(&ctx, out1, out_len);
-    // }
-    // t_serial = clock() - t_serial; 
-    /////////////////////////////////////////////////////////////////////////////////
-    t_serial = clock();
+int main() {
+    
+    unsigned char ins[4][IN_LEN] = {0};
+    unsigned char outs_s[4][OUT_LEN] = {0};
+    unsigned char outs_p[4][OUT_LEN] = {0};
+
     XOF_STATE ctx;
-    for(int i=0; i<num_tests; i++) {
-        xof_start(&ctx);
-        xof_input(&ctx, in1, in_len);
-        xof_stop(&ctx);
-        xof_output(&ctx, out1, out_len);
-    }
-    t_serial = clock() - t_serial;
-    print_array(out1, out_len);
-    /////////////////////////////////////////////////////////////////////////////////
-    //printf("Keccak output: ");for (int i = 0; i < TEST_LEN; ++i) {printf("%02x", test_out[i]);}printf("\n");
-    //print_state(ctx.state);
-    /////////////////////////////////////////////////////////////////////////////////
-    t_parallel = clock();
     my_par_keccak_context pctx;
-    for(int i=0; i<num_tests; i++) {
-        //in1[3] += 100; // just to change the input
+
+    setbuf(stdout, NULL);
+    
+    for(int test=0; test<NUM_TESTS; test++) {
+
+        /* randomize the input and output length */
+        int test_in_len = rand() % IN_LEN;
+        int test_out_len = rand() % OUT_LEN;
+
+        /* randomize the number of absorbtions and squeezes */
+        int repeat_input = rand() % REPEAT_INPUT;
+        int repeat_output = rand() % REPEAT_OUTPUT;
+
+        /* randomize the input buffer */
+        for(int i=0; i<4; i++) {
+            simple_randombytes(ins[i], test_in_len);
+        }
+        
+        /* call serial keccak on the 4 inputs and get 4 outputs */
+        for(int i=0; i<4; i++) {
+            xof_start(&ctx);
+            for(int j=0; j<repeat_input; j++) xof_input(&ctx, ins[i], test_in_len);
+            xof_stop(&ctx);
+            for(int j=0; j<repeat_output; j++) xof_output(&ctx, outs_s[i], test_out_len);
+        }
+
+        /* call parallel keccak on the 4 inputs and get 4 outputs */
         my_par_keccak_start(&pctx);
-        my_par_keccak_input(&pctx, in1, in2, in3, in4, in_len);
+        for(int j=0; j<repeat_input; j++) my_par_keccak_input(&pctx, ins[0], ins[1], ins[2], ins[3], test_in_len);
         my_par_keccak_stop(&pctx);
-        my_par_keccak_output(&pctx, out1, out2, out3, out4, out_len);
+        for(int j=0; j<repeat_output; j++) my_par_keccak_output(&pctx, outs_p[0], outs_p[1], outs_p[2], outs_p[3], test_out_len);
+
+        /* compare the outputs */
+        for(int i=0; i<4; i++) {
+            if(!memcmp(outs_s[i], outs_p[i], test_out_len) == 0) {
+                printf("\n Test %d failed", test);
+                printf("\n index: %d, in_len: %d, out_len: %d, absorbtions: %d, squeezes: %d", i, test_in_len, test_out_len, repeat_input, repeat_output);
+                print_short_array("\n in   ", ins[i], test_in_len);
+                print_short_array("\n out_s", outs_s[i], test_out_len);
+                print_short_array("\n out_p", outs_p[i], test_out_len);
+                printf("\n");       
+                // print_cross_state(ctx);
+                // print_states(pctx.state);
+                usleep(1000000);
+                exit(-1);
+            }
+        }
+        print_progress(test, PROGRESS);
     }
-    t_parallel = clock() - t_parallel;
-    print_array(out1, out_len);
-    /////////////////////////////////////////////////////////////////////////////////
-    //printf("Keccak output: ");for (int i = 0; i < TEST_LEN; ++i) {printf("%02x", test_out[i]);}printf("\n");
-    //print_states(pctx.state);
-    /////////////////////////////////////////////////////////////////////////////////
-    t_total = clock() - t_total;
-    double time_taken = ((double)t_total)/CLOCKS_PER_SEC;
-    double percent = ((double)t_parallel - (double)t_serial)/(double)t_serial*100;
-    double speedup = (double)t_serial / ((double)t_parallel/4);
-    printf("\nSERIAL:\t\t %i cc", t_serial);
-    printf("\nPARALLEL:\t %i cc\t%+.2f %%", t_parallel, percent);
-    printf("\nSPEEDUP:\t x%.2f", speedup);
-    printf("\n******************************************\n");
-    printf("Ran %d tests in %.2f seconds\n", num_tests, time_taken);
-    printf("Parameters: in_len=%d out_len=%d\n", in_len, out_len);
-    printf("******************************************\n");
+    printf("\n\n");
+
     return 0;
 }
 
