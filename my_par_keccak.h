@@ -3,8 +3,9 @@
 
 typedef struct {
     KeccakP1600times4_SIMD256_states state;
-    uint64_t offset; // during absrbtion: number of absorbed bytes that have already been xored into the state but have not been permuted yet
-                     // during squeezing: number of not-yet-squeezed bytes
+    /* - during absrbtion: "offset" is the number of absorbed bytes that have already been xored into the state but have not been permuted yet
+     * - during squeezing: "offset" is the number of not-yet-squeezed bytes */
+    uint64_t offset;
 } my_par_keccak_context;
 
 void my_par_keccak_start(my_par_keccak_context *ctx);

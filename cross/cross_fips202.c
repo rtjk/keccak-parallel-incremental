@@ -1,3 +1,35 @@
+/**
+ *
+ * Reference ISO-C11 Implementation of CROSS.
+ *
+ * @version 1.1 (March 2023)
+ *
+ * @author Alessandro Barenghi <alessandro.barenghi@polimi.it>
+ * @author Gerardo Pelosi <gerardo.pelosi@polimi.it>
+ *
+ * This code is hereby placed in the public domain.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ **/
+
+/* Based on the public domain implementation in
+ * crypto_hash/keccakc512/simple/ from http://bench.cr.yp.to/supercop.html
+ * by Ronny Van Keer
+ * and the public domain "TweetFips202" implementation
+ * from https://twitter.com/tweetfips202
+ * by Gilles Van Assche, Daniel J. Bernstein, and Peter Schwabe */
+
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>

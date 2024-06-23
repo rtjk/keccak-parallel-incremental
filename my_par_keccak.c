@@ -7,11 +7,12 @@
 #include "my_par_keccak.h"
 #include "my_constants.h"
 
-// START
-// INPUT
-// STOP
-// OUTPUT
-// FREE
+/* API:
+ * - START
+ * - INPUT (can be called more than once)
+ * - STOP
+ * - OUTPUT (can be called more than once)
+ */
 
 void my_par_keccak_start(my_par_keccak_context *ctx)
 {
@@ -21,7 +22,7 @@ void my_par_keccak_start(my_par_keccak_context *ctx)
 
 void my_par_keccak_input(my_par_keccak_context *ctx, const unsigned char *in1, const unsigned char *in2, const unsigned char *in3, const unsigned char *in4, unsigned int in_len)
 {
-    // allocate a signle buffer for all 4 inputs
+    /* allocate a signle buffer for all 4 inputs */
     unsigned int total_len = 4 * in_len;
     unsigned char *ins = (unsigned char *)malloc(total_len * sizeof(unsigned char));
     uint8_t* original_ins = ins; // to free the memory later
@@ -29,11 +30,11 @@ void my_par_keccak_input(my_par_keccak_context *ctx, const unsigned char *in1, c
     memcpy(ins + in_len, in2, in_len);
     memcpy(ins + 2 * in_len, in3, in_len);
     memcpy(ins + 3 * in_len, in4, in_len);
-    // if both these conditions are verified:
-    // - there are no bytes left from the previous input (offset == 0)
-    // - the new input size is a multiple of the lane size
-    // then absorb in parallel using AddLanesAll
-    // otherwise, absorb serially using AddBytes
+    /* if both these conditions are verified:
+     * - there are no bytes left from the previous input (offset == 0)
+     * - the new input size is a multiple of the lane size
+     * then absorb in parallel using AddLanesAll
+     * otherwise, absorb serially using AddBytes */
     if(ctx->offset == 0 && in_len % (WORD / 8) == 0) {
         int lanes = in_len * 8 / WORD;
         int lane_offset = lanes;
@@ -51,7 +52,7 @@ void my_par_keccak_input(my_par_keccak_context *ctx, const unsigned char *in1, c
             }
         }
     } else {
-        // if there are enough bytes to fill the rate, absorb then permute
+        /* if there are enough bytes to fill the rate, absorb then permute */
         while (in_len + ctx->offset >= RATE) {
             for(int instance=0; instance<4; instance++) {
                 KeccakP1600times4_AddBytes(&ctx->state, instance, ins+instance*(total_len/4), ctx->offset, RATE - ctx->offset);
@@ -61,7 +62,7 @@ void my_par_keccak_input(my_par_keccak_context *ctx, const unsigned char *in1, c
             KeccakP1600times4_PermuteAll_24rounds(&ctx->state);
             ctx->offset = 0;
         }
-        // if there are any bytes left, absorb them
+        /* if there are any bytes left, absorb them */
         for(int instance=0; instance<4; instance++) {
             KeccakP1600times4_AddBytes(&ctx->state, instance, ins+instance*(total_len/4), ctx->offset, in_len);
         }
@@ -72,6 +73,7 @@ void my_par_keccak_input(my_par_keccak_context *ctx, const unsigned char *in1, c
 
 void my_par_keccak_stop(my_par_keccak_context *ctx)
 {
+    /* add the domain separator */
     uint8_t ds = DS;
     if(ctx->offset == RATE - 1) {
         ds |= 128;
@@ -92,16 +94,16 @@ void my_par_keccak_stop(my_par_keccak_context *ctx)
 
 void my_par_keccak_output(my_par_keccak_context *ctx, unsigned char *out1, unsigned char *out2, unsigned char *out3, unsigned char *out4, unsigned int out_len)
 {
-    // allocate a signle buffer for all 4 outputs
+    /* allocate a signle buffer for all 4 outputs */
     unsigned int total_len = 4 * out_len;
     unsigned char *outs = (unsigned char *)malloc(total_len * sizeof(unsigned char));
     uint8_t* original_outs = outs; // to free the memory later
     int original_out_len = out_len;
-    // if both these conditions are verified:
-    // - there are no bytes left from the previous extraction (offset == 0)
-    // - the new output size is a multiple of the lane size
-    // then extract in parallel using ExtractLanesAll
-    // otherwise, extract serially using ExtractBytes
+    /* if both these conditions are verified:
+     * - there are no bytes left from the previous extraction (offset == 0)
+     * - the new output size is a multiple of the lane size
+     * then extract in parallel using ExtractLanesAll
+     * otherwise, extract serially using ExtractBytes */
     if(ctx->offset == 0 && out_len % (WORD / 8) == 0) {
         int lanes = out_len * 8 / WORD;
         int lane_offset = lanes;
@@ -154,10 +156,10 @@ void my_par_keccak_output(my_par_keccak_context *ctx, unsigned char *out1, unsig
     
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-
 
 /*
+
+Based on the functions in KeccakP-1600-times4-SnP.h from the XKCP:
 
 void KeccakP1600times4_InitializeAll(KeccakP1600times4_states *states);
 void KeccakP1600times4_AddLanesAll(KeccakP1600times4_states *states, const unsigned char *data, unsigned int laneCount, unsigned int laneOffset);
