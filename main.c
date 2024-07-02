@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <unistd.h>
 
+//#include "./pqclean/pqclean_fips202.h"
 #include "./cross/cross_xof.h"
 //#include "my_keccak.h"
 #include "my_par_keccak.h"
@@ -24,6 +25,7 @@ int main() {
     unsigned char outs_s[4][OUT_LEN] = {0};
     unsigned char outs_p[4][OUT_LEN] = {0};
 
+    //pqclean_shake256incctx ctx; // pqclean
     XOF_STATE ctx;
     my_par_keccak_context pctx;
 
@@ -80,3 +82,11 @@ int main() {
     return 0;
 }
 
+/*
+            // pqclean
+            pqclean_shake256_inc_init(&ctx);
+            for(int j=0; j<repeat_input; j++) pqclean_shake256_inc_absorb(&ctx, ins[i], test_in_len);
+            pqclean_shake256_inc_finalize(&ctx);
+            for(int j=0; j<repeat_output; j++) pqclean_shake256_inc_squeeze(outs_s[i], test_out_len, &ctx);
+            pqclean_shake256_inc_ctx_release(&ctx);
+*/

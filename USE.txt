@@ -6,3 +6,7 @@ gcc -o out main.c cross/cross_fips202.c cross/cross_keccakf1600.c KeccakP-1600-t
 gcc -o out main.c cross/cross_fips202.c cross/cross_keccakf1600.c KeccakP-1600-times4-SIMD256.c my_par_keccak.c -mavx2 -O3 && ./out
 # -mavx2 -O3 [with-address-sanitizer]
 gcc -o out main.c cross/cross_fips202.c cross/cross_keccakf1600.c KeccakP-1600-times4-SIMD256.c my_par_keccak.c -mavx2 -O3 -fsanitize=address && ./out
+
+
+# pqclean
+gcc -o out main.c pqclean/pqclean_fips202.c KeccakP-1600-times4-SIMD256.c my_par_keccak.c -mavx2 -O3 -fsanitize=address && ./out
