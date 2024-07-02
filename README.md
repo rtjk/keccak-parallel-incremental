@@ -26,4 +26,6 @@ TODO:
 - experiemnt with loop unrolling (u6, u12, ua) in SIMD256-config.h
 - look for changes in:
   XKCP/lib/low/KeccakP-1600-times4/AVX2
+- compare the outputs with keccak-x1 in PQClean and check domain separator padding
+- add author and license info in file headers
 ```
