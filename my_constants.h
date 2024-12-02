@@ -1,4 +1,4 @@
-// RATES
+// RATES (in bytes)
 #define SHAKE128_RATE (168)
 #define SHAKE256_RATE (136)
 
@@ -15,4 +15,4 @@
 #define DS SHAKE256_DS
 
 #define WORD (64)
-#define MAX_LANES (1152/64 - 1)
+#define MAX_LANES (RATE / (WORD / 8))
