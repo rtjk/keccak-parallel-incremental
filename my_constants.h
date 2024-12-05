@@ -1,3 +1,5 @@
+#include "my_defines.h"
+
 // RATES (in bytes)
 #define SHAKE128_RATE (168)
 #define SHAKE256_RATE (136)
